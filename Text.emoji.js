@@ -6,7 +6,7 @@
 // @author       ChatGPT + מים-אחרונים
 // @match        *://*/*
 // @grant        none
-//@updateURL     https://github.com/mhotjrubho/Text-emojis/blob/main/Text.emoji.js
+// @updateURL     https://github.com/mhotjrubho/Text-emojis/blob/main/Text.emoji.js
 // ==/UserScript==
 
 (function () {
