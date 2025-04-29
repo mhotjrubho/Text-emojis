@@ -1,0 +1,137 @@
+// ==UserScript==
+// @name         Emoji Suggestion (Dynamic + Custom Add Button)
+// @namespace    http://tampermonkey.net/
+// @version      1.1
+// @description  מציע אימוג'ים לפי מילים, עם הוספה מותאמת אישית בלחיצה ושמירה מקומית
+// @author       ChatGPT + User
+// @match        *://*/*
+// @grant        none
+// ==/UserScript==
+
+(function () {
+    'use strict';
+
+    const defaultSuggestions = {
+        "תודה רבה": "🙏",
+        "בהצלחה": "🍀",
+        "יום טוב": "☀️",
+        "חג שמח": "🎉",
+        "שולח חיבוק": "🤗"
+    };
+
+    const storageKey = 'emoji_suggestions_custom';
+    const storageRecentKey = 'emoji_recent';
+
+    // Load from localStorage
+    let customSuggestions = JSON.parse(localStorage.getItem(storageKey) || '{}');
+    let emojiSuggestions = { ...defaultSuggestions, ...customSuggestions };
+
+    // Recent usage
+    let recentEmojis = JSON.parse(localStorage.getItem(storageRecentKey) || '[]');
+
+    function saveRecent(phrase) {
+        recentEmojis.push({ phrase, time: Date.now() });
+        recentEmojis = recentEmojis.filter((e, i, arr) => arr.length - i <= 30 || (Date.now() - e.time < 86400000));
+        localStorage.setItem(storageRecentKey, JSON.stringify(recentEmojis));
+    }
+
+    function wasRecentlyUsed(phrase) {
+        return recentEmojis.some(e => e.phrase === phrase && (Date.now() - e.time < 60000));
+    }
+
+    let lastTarget = null;
+    let mouseX = 0, mouseY = 0;
+
+    const suggestionBox = document.createElement('div');
+    suggestionBox.style.position = 'fixed';
+    suggestionBox.style.background = '#fff';
+    suggestionBox.style.padding = '6px 10px';
+    suggestionBox.style.border = '1px solid #ccc';
+    suggestionBox.style.borderRadius = '8px';
+    suggestionBox.style.fontSize = '18px';
+    suggestionBox.style.zIndex = 999999;
+    suggestionBox.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
+    suggestionBox.style.display = 'none';
+    suggestionBox.style.cursor = 'pointer';
+    suggestionBox.style.userSelect = 'none';
+    document.body.appendChild(suggestionBox);
+
+    const addButton = document.createElement('button');
+    addButton.textContent = '➕ הוספה בהתאמה אישית';
+    addButton.style.marginRight = '8px';
+    addButton.style.fontSize = '14px';
+    addButton.style.padding = '2px 6px';
+    addButton.style.cursor = 'pointer';
+    addButton.style.border = '1px solid #ccc';
+    addButton.style.borderRadius = '4px';
+    addButton.style.background = '#f8f8f8';
+
+    addButton.onclick = function () {
+        const phrase = prompt("הזן את הביטוי שתרצה לזהות:");
+        if (!phrase) return;
+        const emoji = prompt("הזן את האימוג'י שתרצה שיופיע:");
+        if (!emoji) return;
+        customSuggestions[phrase] = emoji;
+        emojiSuggestions[phrase] = emoji;
+        localStorage.setItem(storageKey, JSON.stringify(customSuggestions));
+        alert("נוסף בהצלחה!");
+    };
+
+    const emojiSpan = document.createElement('span');
+    suggestionBox.appendChild(addButton);
+    suggestionBox.appendChild(emojiSpan);
+
+    function insertEmoji(emoji) {
+        if (!lastTarget) return;
+
+        if (lastTarget.isContentEditable) {
+            const selection = document.getSelection();
+            if (!selection.rangeCount) return;
+            const range = selection.getRangeAt(0);
+            range.deleteContents();
+            range.insertNode(document.createTextNode(emoji));
+        } else if (lastTarget instanceof HTMLTextAreaElement || lastTarget instanceof HTMLInputElement) {
+            const start = lastTarget.selectionStart;
+            const end = lastTarget.selectionEnd;
+            const text = lastTarget.value;
+            lastTarget.value = text.slice(0, start) + emoji + text.slice(end);
+            lastTarget.selectionStart = lastTarget.selectionEnd = start + emoji.length;
+        }
+
+        suggestionBox.style.display = 'none';
+        lastTarget.focus();
+    }
+
+    emojiSpan.addEventListener('click', function () {
+        const emoji = emojiSpan.innerText.trim();
+        if (emoji) {
+            insertEmoji(emoji);
+            saveRecent(suggestionBox.dataset.phrase);
+        }
+    });
+
+    document.addEventListener('input', function (e) {
+        const target = e.target;
+        if (!(target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target.isContentEditable)) return;
+        lastTarget = target;
+
+        const text = target.value || target.innerText || '';
+        for (const phrase in emojiSuggestions) {
+            if (text.includes(phrase) && !wasRecentlyUsed(phrase)) {
+                emojiSpan.textContent = emojiSuggestions[phrase];
+                suggestionBox.dataset.phrase = phrase;
+                suggestionBox.style.left = (mouseX + 12) + 'px';
+                suggestionBox.style.top = (mouseY + 12) + 'px';
+                suggestionBox.style.display = 'flex';
+                suggestionBox.style.alignItems = 'center';
+                return;
+            }
+        }
+        suggestionBox.style.display = 'none';
+    }, true);
+
+    document.addEventListener('mousemove', function (e) {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+    });
+})();
