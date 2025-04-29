@@ -1,12 +1,13 @@
 // ==UserScript==
 // @name         Emoji Suggestion (Dynamic + Custom Add Button)
 // @namespace    http://tampermonkey.net/
-// @version      1.2
+// @version      1.1
 // @description  מציע אימוג'ים לפי מילים, עם הוספה מותאמת אישית בלחיצה ושמירה מקומית
 // @author       ChatGPT + מים-אחרונים
 // @match        *://*/*
 // @grant        none
-// @updateURL     https://github.com/mhotjrubho/Text-emojis/blob/main/Text.emoji.js
+// @updateURL    https://raw.githubusercontent.com/mhotjrubho/Text-emojis/main/Text.emoji.user.js
+// @downloadURL  https://raw.githubusercontent.com/mhotjrubho/Text-emojis/main/Text.emoji.user.js
 // ==/UserScript==
 
 (function () {
