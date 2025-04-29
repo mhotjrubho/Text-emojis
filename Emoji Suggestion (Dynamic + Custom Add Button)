@@ -3,9 +3,10 @@
 // @namespace    http://tampermonkey.net/
 // @version      1.1
 // @description  מציע אימוג'ים לפי מילים, עם הוספה מותאמת אישית בלחיצה ושמירה מקומית
-// @author       ChatGPT + User
+// @author       ChatGPT + @מים-אחרונים
 // @match        *://*/*
 // @grant        none
+//@updateURL     https://github.com/mhotjrubho/Text-emojis/tree/1358a0c60838ff99b4fce74923446099bdcc6a65
 // ==/UserScript==
 
 (function () {
